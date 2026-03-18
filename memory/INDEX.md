@@ -1,19 +1,19 @@
 # TradingBot-IN — Active State
 
-**Last Updated**: 2026-03-18 (Session 2)
-**Phase**: MVP Build — ready to execute
-**Status**: Plan approved, no code written yet
+**Last Updated**: 2026-03-19 (Session 3)
+**Phase**: MVP Build — COMPLETE. Next: API routes layer.
+**Status**: 47 tests passing, 78% coverage, all agents + LangGraph wired
 
 ## Active Project State
 
 | Field | Value |
 |-------|-------|
-| Last session | 2026-03-18 |
-| Current phase | MVP Build (DB → Celery → Data → Agents) |
-| Last thing completed | Plan approved + committed (2-round review, 11 issues fixed) |
+| Last session | 2026-03-19 |
+| Current phase | API Routes (next phase after MVP build) |
+| Last thing completed | Full MVP backend: DB + Celery + Data + 7 Agents + LangGraph (47 tests) |
 | Currently in progress | Nothing — clean handoff |
 | Blocked on | Nothing |
-| Next action | `"resume"` then execute MVP plan with subagent-driven dev |
+| Next action | Build `app/api/v1/scan.py`, `signals.py`, `portfolio.py` |
 
 ## Port Map (local dev)
 Run `bash scripts/check_ports.sh` before starting — auto-detects conflicts.

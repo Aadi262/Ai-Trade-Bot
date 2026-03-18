@@ -3,37 +3,39 @@
 > Read this first every session. Updated at session end.
 
 ## Current Task
-**Execute the MVP build plan** — DB models → Celery → Data layer → 7 Agents → LangGraph
+**Build the API routes layer** — scan endpoint, signals endpoint, portfolio endpoint
 
 ## Next Immediate Action
 ```
 Say "resume" to restore context, then:
-"execute the MVP plan using subagent-driven development"
+"build the API routes: app/api/v1/scan.py, signals.py, portfolio.py"
 ```
 
-## Plan Location
-`docs/phases/2026-03-18-mvp-build.md`
+## What Already Exists (MVP complete)
+- `app/db/base.py` + `app/db/models.py` — async SQLAlchemy, all 5 tables
+- `app/workers/` — Celery app, beat schedule, task stubs
+- `app/data/` — market, indicators, global_cues, news
+- `app/agents/` — base, risk_manager (100% cov), 7 agents, graph.py (LangGraph)
+- `app/main.py` — FastAPI app with health endpoint
+- `app/core/` — config, security, middleware, rate_limit, exceptions
+- **47 tests passing, 78% coverage**
 
-## Execution Order (from plan)
-1. Pre-flight: `bash scripts/check_ports.sh` + confirm `tests/conftest.py` env fixtures
-2. Phase 1: `app/db/base.py` → `app/db/models.py` → Alembic init + first migration
-3. Phase 2: `app/workers/celery_app.py` → `beat_schedule.py` → task stubs
-4. Phase 3: `app/data/market.py` → `indicators.py` → `global_cues.py` → `news.py`
-5. Phase 4: `app/agents/base.py` → `risk_manager.py` → all 7 agents → `graph.py`
-6. Integration smoke test
+## Next Phase: API Routes
+
+| Endpoint | File | Purpose |
+|----------|------|---------|
+| POST /api/v1/scan/{symbol} | app/api/v1/scan.py | Trigger scan pipeline for a symbol |
+| GET /api/v1/signals | app/api/v1/signals.py | List recent signals from DB |
+| GET /api/v1/portfolio | app/api/v1/portfolio.py | Open positions + daily PnL |
 
 ## Critical Constraints (never violate)
-- Write test FIRST, run to confirm FAIL, then implement
-- `risk_manager.py` must achieve 100% test coverage (`--cov-fail-under=100`)
-- `TradingState` in `graph.py` must be `TypedDict` (not dataclass)
-- LangGraph node functions return `dict` partial updates (not full state)
-- BullResearcher/BearResearcher fallback signal = `"SKIP"` always
-- `risk_manager` is NOT an LLM agent — pure Python rules, not in AGENT_CONFIG
-- TRADING_MODE=paper at all times until explicit human sign-off
+- TRADING_MODE=paper at all times
+- All routes require auth (JWT via `authenticate` middleware)
+- `risk_manager.py` must stay at 100% test coverage
+- Write tests first (TDD)
 
-## What Already Exists
-- `app/main.py` — FastAPI app + health endpoint
-- `app/core/` — config, security, middleware, rate_limit, exceptions
-- `docker-compose.yml` — full stack with port overrides
-- `tests/conftest.py` — test env fixtures (ANTHROPIC_API_KEY mocked)
-- GitHub remote: https://github.com/Aadi262/Ai-Trade-Bot
+## Environment Notes
+- Python 3.14 venv — pandas-ta skipped, pure pandas indicators used
+- REDIS_URL=memory:// in conftest (slowapi workaround)
+- CELERY_BROKER_URL=redis://localhost:6379/0 (separate from REDIS_URL)
+- pytest-cov: use dot notation `--cov=app.module.name`

@@ -35,17 +35,24 @@
 - TRADING_MODE defaults to `paper` — never switch to `live` without explicit human confirmation
 - All secrets via `app/core/config.py` (pydantic-settings) — never hardcoded
 
-## What's Built (as of 2026-03-18)
-- Project scaffold: full directory structure
-- `app/core/`: config, security, middleware, rate_limit, exceptions
-- `app/main.py`: FastAPI app with health endpoint
-- `docker-compose.yml`, `Dockerfile`, CI pipeline
-- `docs/phases/2026-03-18-mvp-build.md`: approved MVP build plan
+## What's Built (as of 2026-03-19)
+- Project scaffold + `app/core/` + `app/main.py` + docker-compose + CI
+- **DB layer**: `app/db/base.py` (async session), `app/db/models.py` (5 models), Alembic async env
+- **Celery**: `app/workers/celery_app.py` (3-priority queues), beat_schedule (6 crons), task stubs
+- **Data layer**: market.py (yfinance), indicators.py (pandas-based), global_cues.py (VIX), news.py (RSS)
+- **Agents**: base.py, risk_manager.py (100% cov), technical, fundamentals, sentiment, macro, bull_researcher, bear_researcher, trader, fund_manager
+- **LangGraph**: `app/agents/graph.py` — full 7-agent sequential pipeline, `run_pipeline(symbol)`
+- **Tests**: 47 passing, 78% coverage, integration smoke test
+
+## Environment Gotchas
+- Python 3.14 in venv — `pandas-ta` incompatible (needs numba). Use pure pandas for indicators.
+- `REDIS_URL=memory://` in conftest — prevents slowapi import-time Redis connection
+- `CELERY_BROKER_URL` must be set separately from `REDIS_URL` (defaults to redis://localhost:6379/0)
+- pytest-cov: use dot notation `--cov=app.agents.risk_manager`, NOT path notation
+- SQLite test DB: engine must skip `pool_size`/`max_overflow` kwargs
 
 ## What's NOT Built Yet
-- DB models + Alembic
-- Celery workers
-- Data layer (yfinance, pandas-ta, news, VIX)
-- All 7 agents + LangGraph pipeline
-- API routes (scan, signal, portfolio)
-- Paper trading execution
+- API routes (scan, signal, portfolio endpoints)
+- Paper trading execution (Trade creation from RiskDecision)
+- Auth endpoints (JWT login/register)
+- Frontend / dashboard

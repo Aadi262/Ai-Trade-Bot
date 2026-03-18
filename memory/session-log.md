@@ -1,5 +1,51 @@
 # Session Log
 
+## 2026-03-19 — Session 3
+
+**Duration**: ~2 hours
+**Phase**: MVP Build — full execution (DB → Celery → Data → Agents + LangGraph)
+
+**Completed this session**:
+- Phase 1: `app/db/base.py` (async session factory, SQLite-aware) ✅
+- Phase 1: `app/db/models.py` (User, Signal, AuditLog, Trade, DailyPnL) ✅
+- Phase 1: `alembic/` async env.py setup ✅ — 7 tests passing
+- Phase 2: `app/workers/celery_app.py` (3-priority queues, Redis) ✅
+- Phase 2: `app/workers/beat_schedule.py` (6 cron jobs) + task stubs ✅ — 14 tests passing
+- Phase 3: `app/data/market.py` (yfinance OHLCV + symbol validation) ✅
+- Phase 3: `app/data/indicators.py` (pandas-based indicators — EMA, RSI, MACD, ATR, BB) ✅
+- Phase 3: `app/data/global_cues.py` (India VIX + pause gate) ✅
+- Phase 3: `app/data/news.py` (ET + Moneycontrol RSS) ✅ — 30 tests passing
+- Phase 4: `app/agents/base.py` (AgentOutput Pydantic schema + BaseAgent) ✅
+- Phase 4: `app/agents/risk_manager.py` (5 gates, 100% coverage) ✅
+- Phase 4: All 7 agents (technical, fundamentals, sentiment, macro, bull/bear, trader, fund_manager) ✅
+- Phase 4: `app/agents/graph.py` (LangGraph pipeline, TradingState TypedDict) ✅
+- Integration smoke test: `tests/integration/test_scan_pipeline.py` ✅ — 47 tests passing, 78% coverage
+
+**Key decisions made**:
+- `pandas-ta` incompatible with Python 3.14 (needs numba) — all indicators reimplemented directly with pandas; same `IndicatorResult` API, drop-in replacement later
+- `CELERY_BROKER_URL` separate env var from `REDIS_URL` so unit tests (memory://) don't break Celery config tests
+- `REDIS_URL=memory://` in conftest (was redis://localhost:6379/1) — prevents slowapi Redis connection at import time
+- SQLite-aware engine creation: no `pool_size`/`max_overflow` when DATABASE_URL starts with "sqlite"
+- `sa.Uuid` used (SQLAlchemy 2.0 generic) instead of `dialect.postgresql.UUID` — works for both SQLite tests and PostgreSQL prod
+- `DailyPnL.date` annotation fixed: `Mapped[date]` not `Mapped[datetime]`
+- `langgraph==0.2.60` installed into venv — `StateGraph`, `set_entry_point`, `add_edge`, `compile` API fully compatible
+
+**Problems encountered**:
+- alembic/ directory was missing after Task 1.3 — fixed by running `alembic init alembic` in a follow-up subagent
+- slowapi tried to connect Redis at import time — fixed by setting `REDIS_URL=memory://` in conftest
+- pytest-cov path syntax `--cov=app/agents/risk_manager` reported 0% on Python 3.14 — use module dot notation `--cov=app.agents.risk_manager`
+- langgraph not in venv — installed via `.venv/bin/pip install langgraph==0.2.60`
+
+**Left incomplete**:
+- Nothing — all MVP phases complete
+- API routes not yet built (scan, signal, portfolio endpoints)
+- Paper trading execution logic (Trade creation from RiskDecision)
+
+**Next session starts with**:
+Build the API routes layer: `app/api/v1/scan.py`, `app/api/v1/signals.py`, `app/api/v1/portfolio.py`
+
+---
+
 ## 2026-03-18 — Session 2
 
 **Duration**: ~1 hour
