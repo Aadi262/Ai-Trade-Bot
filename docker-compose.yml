@@ -1,0 +1,108 @@
+services:
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+    ports:
+      - "${API_PORT:-8000}:8000"
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ./app:/app/app  # Hot reload in dev — remove in prod
+
+  worker-high:
+    build: .
+    command: celery -A app.workers.celery_app worker -Q critical,high -c 4 --loglevel=info
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker-default:
+    build: .
+    command: celery -A app.workers.celery_app worker -Q default -c 2 --loglevel=info
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  beat:
+    build: .
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  flower:
+    build: .
+    command: celery -A app.workers.celery_app flower --port=5555
+    ports:
+      - "${FLOWER_PORT:-5555}:5555"
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tradingbot}
+      POSTGRES_USER: ${POSTGRES_USER:-tradingbot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tradingbot}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - ./monitoring/grafana:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  redis_data:
+  postgres_data:
+  grafana_data:
