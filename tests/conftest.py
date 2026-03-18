@@ -7,7 +7,7 @@ from httpx import AsyncClient, ASGITransport
 os.environ.setdefault("SECRET_KEY", "test-secret-key-32-chars-minimum!!")
 os.environ.setdefault("JWT_SECRET", "test-jwt-secret-32-chars-minimum!!")
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
-os.environ.setdefault("REDIS_URL", "redis://localhost:6379/1")
+os.environ.setdefault("REDIS_URL", "memory://")
 os.environ.setdefault("ANTHROPIC_API_KEY", "test-placeholder-key")
 os.environ.setdefault("POSTGRES_PASSWORD", "test")
 os.environ.setdefault("TRADING_MODE", "paper")

@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -110,7 +110,7 @@ class DailyPnL(Base):
     __tablename__ = "daily_pnl"
 
     id: Mapped[uuid.UUID] = mapped_column(sa.Uuid, primary_key=True, default=uuid.uuid4)
-    date: Mapped[datetime] = mapped_column(sa.Date, unique=True, nullable=False)
+    date: Mapped[date] = mapped_column(sa.Date, unique=True, nullable=False)
     gross_pnl: Mapped[float | None] = mapped_column(sa.Numeric(10, 2))
     net_pnl: Mapped[float | None] = mapped_column(sa.Numeric(10, 2))
     total_trades: Mapped[int | None] = mapped_column(sa.Integer)
