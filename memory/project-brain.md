@@ -51,8 +51,17 @@
 - pytest-cov: use dot notation `--cov=app.agents.risk_manager`, NOT path notation
 - SQLite test DB: engine must skip `pool_size`/`max_overflow` kwargs
 
+## CI / Local Dev (as of 2026-03-19 Session 4)
+- CI uses `requirements-ci.txt` — no torch/transformers, runs natively in ~30s
+- `safety` removed from CI (v3 requires paid account) — `pip-audit` only with `continue-on-error`
+- Deploy job skips gracefully if `VPS_HOST` GitHub secret not set
+- Local dev: `.env` with SQLite + `REDIS_URL=memory://` — no Docker needed
+- `uvicorn` installed in venv — start with `.venv/bin/uvicorn app.main:app --port 8000 --reload`
+- `Settings.extra = "ignore"` — docker-compose port vars silently ignored by pydantic
+
 ## What's NOT Built Yet
-- API routes (scan, signal, portfolio endpoints)
+- API routes (scan, signals, portfolio endpoints)
 - Paper trading execution (Trade creation from RiskDecision)
 - Auth endpoints (JWT login/register)
+- VPS auto-deploy (deferred — user has issue with VPS setup)
 - Frontend / dashboard

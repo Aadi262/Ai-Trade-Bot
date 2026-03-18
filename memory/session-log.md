@@ -1,5 +1,42 @@
 # Session Log
 
+## 2026-03-19 — Session 4
+
+**Duration**: ~30 min
+**Phase**: CI Fix + Local Dev Setup
+
+**Completed this session**:
+- Fixed GitHub Actions CI — rewritten to run natively (no docker-compose), tests pass in ~30s ✅
+- Created `requirements-ci.txt` — excludes torch/transformers/vectorbt (saves 2GB install) ✅
+- Fixed deploy job — no longer crashes when `VPS_HOST` secret is missing ✅
+- Created `.env` — SQLite + memory:// Redis, server runs without Docker ✅
+- Installed `uvicorn` + `aiosqlite` into venv ✅
+- Fixed `Settings` model — added `extra="ignore"` to stop crash on docker-compose port vars ✅
+- Server starts and responds: `GET /api/v1/health` returns 200 ✅
+- Swagger UI available at `http://localhost:8000/docs` ✅
+- 47 tests still passing after all changes ✅
+
+**Key decisions made**:
+- CI uses `requirements-ci.txt` not `requirements.txt` — keeps CI fast, torch not needed for tests
+- `safety check` removed from CI (v3 requires paid account) — `pip-audit` only, `continue-on-error: true`
+- Deploy job uses step-level `if: env.VPS_HOST != ''` — job succeeds even without VPS secret
+- Local dev uses SQLite + `REDIS_URL=memory://` — no Docker needed to run the server locally
+- `Settings.extra = "ignore"` — docker-compose port vars (`API_PORT`, `FLOWER_PORT`, etc.) silently ignored
+
+**Problems encountered**:
+- `Settings` pydantic model rejected unknown env vars from `.env` — fixed with `extra="ignore"`
+- `uvicorn` was missing from venv (in requirements.txt but not installed) — installed manually
+
+**Left incomplete**:
+- API routes (scan, signals, portfolio) — deferred to next session
+- Paper trade execution — deferred to next session
+- VPS auto-deploy — deferred (user decision, some issue with VPS setup)
+
+**Next session starts with**:
+Brainstorm + build API routes: decide auth strategy (open vs JWT), then build `scan.py`, `signals.py`, `portfolio.py` + paper trade execution
+
+---
+
 ## 2026-03-19 — Session 3
 
 **Duration**: ~2 hours
