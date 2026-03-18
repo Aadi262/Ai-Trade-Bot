@@ -45,6 +45,13 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
     steps:
       - name: Deploy to VPS
+        if: env.VPS_HOST != ''
         run: ssh ${{ secrets.VPS_HOST }} 'cd /opt/tradingbot && git pull && docker compose up -d'
+
+      - name: No VPS configured
+        if: env.VPS_HOST == ''
+        run: echo "VPS_HOST secret not set — skipping deploy. Add it in repo Settings → Secrets."
